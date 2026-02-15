@@ -11,12 +11,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Unzip
-        run: unzip *.zip -d extracted
+      - name: Unzip project
+        run: unzip *.zip -d src
 
       - name: Locate project
         run: |
-          cd extracted
+          cd src
           DIR=$(find . -name gradlew | head -n 1 | sed 's/\/gradlew//')
           mv "$DIR"/* ../
           cd ..
@@ -27,13 +27,19 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Permission
+      - name: Disable NDK completely
+        run: |
+          echo "android.useAndroidX=true" >> gradle.properties
+          echo "android.enableJetifier=true" >> gradle.properties
+          echo "android.ndkVersion=" >> gradle.properties
+
+      - name: Grant permission
         run: chmod +x gradlew
 
-      - name: Build
-        run: ./gradlew assembleDebug
+      - name: Build APK
+        run: ./gradlew assembleDebug --no-daemon
 
-      - name: Upload
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: APK
