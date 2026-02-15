@@ -1,41 +1,37 @@
-name: Build HIDENET APK
+name: Build APK
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Unzip project
-        run: unzip *.zip -d project
+      - name: Unzip
+        run: unzip HIDENET_SUPER_FINAL.zip -d appsrc
+
+      - name: Move project
+        run: |
+          mv appsrc/*/* .
 
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: 17
 
-      - name: Find project folder
-        run: |
-          cd project
-          PROJECT_DIR=$(find . -name gradlew | head -n 1 | xargs dirname)
-          echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
+      - name: Grant gradle permission
+        run: chmod +x gradlew
 
-      - name: Build APK
-        run: |
-          cd project/$PROJECT_DIR
-          chmod +x gradlew
-          ./gradlew assembleDebug
+      - name: Build
+        run: ./gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: HIDENET-APK
-          path: project/**/build/outputs/apk/debug/*.apk
+          name: APK
+          path: app/build/outputs/apk/debug/*.apk
